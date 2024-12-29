@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Similarity Results</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-900">
+    <div class="max-w-6xl mx-auto p-6">
+        <h1 class="text-3xl font-bold mb-4">Code Similarity Results</h1>
+
+        <h2 class="text-2xl font-semibold mt-6 mb-4">Summary</h2>
+        <div class="bg-white shadow-md rounded-lg p-4 mb-6">
+            <p><strong>Overall String Similarity:</strong> {{ result.string_similarity | round(2) * 100 }}%</p>
+            <p><strong>Token-Based Similarity:</strong> {{ result.token_similarity | round(2) * 100 }}%</p>
+        </div>
+
+        <h2 class="text-2xl font-semibold mt-6 mb-4">Similar Lines</h2>
+        {% if result.diff_lines %}
+        <table class="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
+            <thead>
+                <tr class="bg-gray-200 text-left">
+                    <th class="py-2 px-4">File 1 (Line No.)</th>
+                    <th class="py-2 px-4">Content</th>
+                    <th class="py-2 px-4">File 2 (Line No.)</th>
+                    <th class="py-2 px-4">Content</th>
+                    <th class="py-2 px-4">Similarity</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for line in result.diff_lines %}
+                <tr class="border-b">
+                    <td class="py-2 px-4">{{ line.file1_line }}</td>
+                    <td class="py-2 px-4"><code>{{ line.file1_content }}</code></td>
+                    <td class="py-2 px-4">{{ line.file2_line }}</td>
+                    <td class="py-2 px-4"><code>{{ line.file2_content }}</code></td>
+                    <td class="py-2 px-4">
+                        {{ line.similarity * 100 | round(2) }}%
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No similar lines found.</p>
+        {% endif %}
+
+        <h2 class="text-2xl font-semibold mt-6 mb-4">Similar Functions</h2>
+        {% if result.similar_functions %}
+        <table class="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
+            <thead>
+                <tr class="bg-gray-200 text-left">
+                    <th class="py-2 px-4">File 1 Function</th>
+                    <th class="py-2 px-4">File 2 Function</th>
+                    <th class="py-2 px-4">Signature Similarity</th>
+                    <th class="py-2 px-4">Body Similarity</th>
+                    <th class="py-2 px-4">Feedback</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for func in result.similar_functions %}
+                <tr class="border-b">
+                    <td class="py-2 px-4">{{ func.file1_function }} (Line {{ func.file1_line }})</td>
+                    <td class="py-2 px-4">{{ func.file2_function }} (Line {{ func.file2_line }})</td>
+                    <td class="py-2 px-4">{{ func.signature_similarity }}%</td>
+                    <td class="py-2 px-4">{{ func.body_similarity }}%</td>
+                    <td class="py-2 px-4">
+                        {% if func.signature_similarity >= 90 or func.body_similarity >= 90 %}
+                        Highly similar. Consider refactoring to avoid duplication.
+                        {% elif func.signature_similarity >= 75 or func.body_similarity >= 75 %}
+                        Moderate similarity. You may want to refactor this code.
+                        {% else %}
+                        Low similarity. No changes needed.
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No similar functions found.</p>
+        {% endif %}
+    </div>
+</body>
+</html>
